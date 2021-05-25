@@ -9,10 +9,15 @@ class SoundViewController: UIViewController {
     @IBOutlet weak var reproducirButton: UIButton!
     @IBOutlet weak var nombreTextField: UITextField!
     @IBOutlet weak var agregarButton: UIButton!
+    @IBOutlet weak var timerLabel: UILabel!
     
     var grabarAudio: AVAudioRecorder?
     var reproducirAudio: AVAudioPlayer?
     var audioURL:URL?
+    var audioController: AVAudioTime?
+    
+    var time = Timer()
+    var count = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,6 +31,7 @@ class SoundViewController: UIViewController {
         if grabarAudio!.isRecording{
             //Detenemos la grabaciòn
             grabarAudio?.stop()
+            time.invalidate()
             //Cambiamos el texto de nuestro boton grabar
             grabarButton.setTitle("GRABAR", for: .normal)
             reproducirButton.isEnabled = true
@@ -33,11 +39,32 @@ class SoundViewController: UIViewController {
         }else{
             //Empezamos la grabaciòn
             grabarAudio?.record()
+            time.invalidate()
+            time = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(timerCounter), userInfo: nil, repeats: true)
             //Cambiamos el texto de nuestro boton grabar a detenener
             grabarButton.setTitle("DETENER", for: .normal)
             reproducirButton.isEnabled = false
             
         }
+    }
+    
+    @objc func timerCounter() -> Void
+    {
+        count += 1
+        let time = MinutesSecond(seconds: count)
+        let timeString = makeTimeString(minutes: time.0, seconds: time.1)
+        timerLabel.text = timeString
+    }
+    func MinutesSecond(seconds: Int) -> (Int, Int){
+        return(((seconds%3600)/60), ((seconds%3600)%60))
+    }
+    
+    func makeTimeString(minutes: Int, seconds : Int) -> String{
+        var timeString = ""
+        timeString += String(format: "%02d", minutes)
+        timeString += ":"
+        timeString += String(format: "%02d", seconds)
+        return timeString
     }
     
     @IBAction func reproducirTapped(_ sender: Any) {
